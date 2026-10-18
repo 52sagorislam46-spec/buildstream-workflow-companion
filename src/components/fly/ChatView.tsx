@@ -1,3 +1,4 @@
+import { PREMIUM_REACTIONS, PREMIUM_STICKERS, isPremium } from "./premium";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMicStream, withRetry } from "../../lib/mic";
 import {
@@ -87,7 +88,9 @@ export function ChatView({
   onBack: () => void;
   onOpenProfile?: (uid: string) => void;
 }) {
-  const { user } = useAuth();
+  const { user, profile: myPremiumProfile } = useAuth();
+  const premiumMe = isPremium(myPremiumProfile);
+  const [showStickers, setShowStickers] = useState(false);
   const { startCall, busy } = useCalls();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -1015,12 +1018,26 @@ export function ChatView({
             </button>
           </div>
         ) : (
+          <>
+          {premiumMe && (
+            <span className="relative shrink-0">
+              <button type="button" onClick={() => setShowStickers((v) => !v)} aria-label="Premium stickers" className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-lg active:scale-90">💎</button>
+              {showStickers && (
+                <span className="absolute bottom-12 left-0 z-20 w-56 grid grid-cols-6 gap-1 p-2 rounded-2xl bg-white border border-gray-100 shadow-lg text-2xl">
+                  {PREMIUM_STICKERS.map((s) => (
+                    <button key={s} type="button" onClick={() => { setText((t) => t + s); setShowStickers(false); }} className="active:scale-90">{s}</button>
+                  ))}
+                </span>
+              )}
+            </span>
+          )}
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Message..."
             className="flex-1 min-w-0 h-11 px-4 rounded-2xl bg-gray-50 border border-gray-100 text-sm outline-none focus:border-sky-300"
           />
+          </>
         )}
 
         {!recording && (
@@ -1068,7 +1085,7 @@ export function ChatView({
           >
             {!menuFor.deleted && menuFor.kind !== "call" && (
               <div className="flex items-center justify-between gap-1 bg-gray-50 border border-gray-100 rounded-full px-2 py-2 mb-1">
-                {MESSAGE_REACTIONS.map((emoji) => {
+                {[...MESSAGE_REACTIONS, ...(premiumMe ? PREMIUM_REACTIONS : [])].map((emoji) => {
                   const active = (menuFor.reactions ?? {})[user.uid] === emoji;
                   return (
                     <button
