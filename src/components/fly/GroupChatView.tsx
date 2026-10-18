@@ -1,4 +1,4 @@
-import { PREMIUM_REACTIONS, PREMIUM_STICKERS, isPremium } from "./premium";
+import { PREMIUM_REACTIONS, isPremium } from "./premium";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMicStream, withRetry } from "../../lib/mic";
 import {
@@ -82,7 +82,6 @@ export function GroupChatView({
 }) {
   const { user, profile: myPremiumProfile } = useAuth();
   const premiumMe = isPremium(myPremiumProfile);
-  const [showStickers, setShowStickers] = useState(false);
   const { startGroupCall, joinGroupCall, activeCallId, busy: rawCallBusy } = useGroupCalls();
   const [group, setGroup] = useState<GroupConversation>(initialGroup);
   const [ongoingCall, setOngoingCall] = useState<{ id: string; type: "audio" | "video" } | null>(
