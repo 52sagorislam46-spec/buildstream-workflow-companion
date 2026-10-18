@@ -9,7 +9,7 @@ export function productOrderLink(p: PostProduct): string {
   if (!raw) return "";
   const digits = raw.replace(/[^\d]/g, "");
   const looksPhone = /^[+\d\s()-]+$/.test(raw) && digits.length >= 8;
-  if (looksPhone || /wa\.me|whatsapp/i.test(raw) && !/^https?:\/\//i.test(raw)) {
+  if (looksPhone || (/wa\.me|whatsapp/i.test(raw) && !/^https?:\/\//i.test(raw))) {
     const num = digits.startsWith("0") ? `88${digits}` : digits;
     const msg = encodeURIComponent(`আমি "${p.title}" (৳${p.price}) অর্ডার করতে চাই।`);
     return `https://wa.me/${num}?text=${msg}`;

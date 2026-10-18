@@ -1,19 +1,27 @@
 import { useEffect, useState } from "react";
-import { ImagePlus, Loader2, UserPlus, X } from "lucide-react";
+import { ImagePlus, Loader2, ShoppingBag, UserPlus, X } from "lucide-react";
 import { addDoc, collection, getDocs, limit, query, serverTimestamp } from "firebase/firestore";
 import { db, isVideoFile, uploadToCloudinary } from "../../lib/firebase";
 import { useAuth } from "./AuthContext";
 import { notifyUpload } from "../../lib/appNotifications";
 import { POST_BACKGROUNDS, getPostBackground } from "./postBackgrounds";
+import { PREMIUM_STICKERS, isPremium } from "./premium";
 
 export function CreatePostModal({ onClose }: { onClose: () => void }) {
   const { ensureUserProfile, profile } = useAuth();
+  const premium = isPremium(profile);
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [friends, setFriends] = useState<{ uid: string; name: string; photo: string }[]>([]);
   const [tagged, setTagged] = useState<{ uid: string; name: string }[]>([]);
   const [showTag, setShowTag] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
+  const [showProduct, setShowProduct] = useState(false);
+  const [productTitle, setProductTitle] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [productLink, setProductLink] = useState("");
+  const [productFile, setProductFile] = useState<File | null>(null);
+  const [productPreview, setProductPreview] = useState("");
 
   useEffect(() => {
     if (!showTag || friends.length || !profile) return;
@@ -61,6 +69,10 @@ export function CreatePostModal({ onClose }: { onClose: () => void }) {
 
   const submit = async () => {
     if (!text.trim() && !file) return;
+    if (showProduct && (!productTitle.trim() || !productPrice.trim() || !productLink.trim())) {
+      setError("প্রোডাক্টের নাম, দাম ও অর্ডার লিংক দিন");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -76,6 +88,17 @@ export function CreatePostModal({ onClose }: { onClose: () => void }) {
         mediaUrl = media[0].url;
         mediaType = media[0].type;
       }
+      let product: { title: string; price: string; imageUrl: string; link: string } | null = null;
+      if (showProduct) {
+        let imageUrl = "";
+        if (productFile) imageUrl = (await uploadToCloudinary(productFile)).url;
+        product = {
+          title: productTitle.trim().slice(0, 100),
+          price: productPrice.trim().slice(0, 20),
+          imageUrl,
+          link: productLink.trim().slice(0, 300),
+        };
+      }
       const isReel = mediaType === "video";
       await addDoc(collection(db, "posts"), {
         authorId: profile.uid,
@@ -89,6 +112,7 @@ export function CreatePostModal({ onClose }: { onClose: () => void }) {
         taggedUsers: tagged,
         bgStyle: bg && bg.id !== "plain" ? bg.id : "",
         exclusive,
+        product,
         likes: [],
         comments: [],
         tags: tags
@@ -227,6 +251,29 @@ export function CreatePostModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
+        {premium && (
+          <div className="mt-2 flex flex-wrap gap-1.5 text-xl">
+            {PREMIUM_STICKERS.map((s) => (
+              <button key={s} type="button" onClick={() => setText((t) => t + s)} className="active:scale-90">{s}</button>
+            ))}
+          </div>
+        )}
+        {showProduct && (
+          <div className="mt-3 rounded-2xl border border-amber-100 bg-amber-50/50 p-3 space-y-2">
+            <p className="text-sm font-semibold text-amber-700">🛍️ প্রোডাক্ট যুক্ত করুন</p>
+            <div className="flex gap-2">
+              <label className="w-16 h-16 shrink-0 rounded-xl bg-white border border-dashed border-amber-300 flex items-center justify-center overflow-hidden cursor-pointer text-amber-500">
+                {productPreview ? <img src={productPreview} alt="" className="w-full h-full object-cover" /> : <ImagePlus size={20} />}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) { setProductFile(f); setProductPreview(URL.createObjectURL(f)); } }} />
+              </label>
+              <div className="flex-1 space-y-2">
+                <input value={productTitle} onChange={(e) => setProductTitle(e.target.value)} placeholder="প্রোডাক্টের নাম" className="w-full px-3 py-2 rounded-xl bg-white border border-gray-100 text-sm outline-none" />
+                <input value={productPrice} onChange={(e) => setProductPrice(e.target.value)} inputMode="decimal" placeholder="দাম (৳)" className="w-full px-3 py-2 rounded-xl bg-white border border-gray-100 text-sm outline-none" />
+              </div>
+            </div>
+            <input value={productLink} onChange={(e) => setProductLink(e.target.value)} placeholder="WhatsApp নম্বর বা ওয়েবসাইট লিংক" className="w-full px-3 py-2 rounded-xl bg-white border border-gray-100 text-sm outline-none" />
+          </div>
+        )}
         {error && (
           <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2 mt-3">
             {error}
@@ -257,6 +304,9 @@ export function CreatePostModal({ onClose }: { onClose: () => void }) {
           </label>
           <button type="button" onClick={() => setShowTag((v) => !v)} className="flex items-center gap-1.5 text-sky-500 font-medium text-sm">
             <UserPlus size={19} /> Tag
+          </button>
+          <button type="button" onClick={() => setShowProduct((v) => !v)} className={`flex items-center gap-1.5 font-medium text-sm ${showProduct ? "text-amber-600" : "text-sky-500"}`}>
+            <ShoppingBag size={18} /> Product
           </button>
           <button
             onClick={submit}
