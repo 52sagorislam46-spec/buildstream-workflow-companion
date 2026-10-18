@@ -62,6 +62,8 @@ export interface Post {
   boostDays?: number;
   boostUntil?: number;
   boostRequestedAt?: number;
+  /** Social commerce: product tagged on this post/reel. */
+  product?: { title: string; price: string; imageUrl: string; link: string } | null;
   createdAt: number;
 }
 
