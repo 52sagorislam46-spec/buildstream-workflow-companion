@@ -290,7 +290,7 @@ export function CreatePostModal({ onClose }: { onClose: () => void }) {
             className="w-4 h-4 accent-amber-500"
           />
         </label>
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-4">
           <label className="flex items-center gap-2 text-sky-500 font-medium cursor-pointer">
             <ImagePlus size={20} />
             <span className="text-sm">Photo / Video</span>
