@@ -16,6 +16,7 @@ import type { Comment, Post, UserProfile } from "./types";
 import { StarGiftButton } from "./StarGift";
 import { isVipOf, ReelVipLock } from "./vip";
 import { isAdminVip, UserBadges } from "./badges";
+import { ProductCard } from "./shop";
 
 function Reel({
   post,
@@ -472,6 +473,11 @@ function Reel({
           <p className="mt-2 text-sm text-white/90 line-clamp-3 whitespace-pre-wrap break-words">
             {post.text}
           </p>
+        )}
+        {post.product?.title && !vipLocked && (
+          <div className="max-w-[280px]">
+            <ProductCard product={post.product} dark />
+          </div>
         )}
         <div className="mt-2 flex items-center gap-2 text-white/80">
           <Music2 size={14} className="shrink-0" />
