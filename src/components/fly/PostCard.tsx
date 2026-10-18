@@ -34,6 +34,7 @@ import { Megaphone, Rocket } from "lucide-react";
 import { BOOST_DAYS, boostPrice, isSponsored, requestBoost } from "./boost";
 import { AddMoneyCard } from "./AddMoneyCard";
 import { LikedBy, ReactionsSheet } from "./ReactionsSheet";
+import { ProductCard } from "./shop";
 
 export function CommentItem({
   comment,
@@ -631,6 +632,7 @@ export function PostCard({
               )}
             </div>
           )}
+          {post.product?.title && <ProductCard product={post.product} />}
           </>
           )}
           {isVideo ? (

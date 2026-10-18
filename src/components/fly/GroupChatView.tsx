@@ -1,3 +1,4 @@
+import { PREMIUM_REACTIONS, isPremium } from "./premium";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getMicStream, withRetry } from "../../lib/mic";
 import {
@@ -79,7 +80,8 @@ export function GroupChatView({
   group: GroupConversation;
   onBack: () => void;
 }) {
-  const { user } = useAuth();
+  const { user, profile: myPremiumProfile } = useAuth();
+  const premiumMe = isPremium(myPremiumProfile);
   const { startGroupCall, joinGroupCall, activeCallId, busy: rawCallBusy } = useGroupCalls();
   const [group, setGroup] = useState<GroupConversation>(initialGroup);
   const [ongoingCall, setOngoingCall] = useState<{ id: string; type: "audio" | "video" } | null>(
@@ -913,7 +915,7 @@ export function GroupChatView({
           >
             {!menuFor.deleted && menuFor.kind !== "call" && (
               <div className="flex items-center justify-between gap-1 bg-gray-50 border border-gray-100 rounded-full px-2 py-2 mb-1">
-                {MESSAGE_REACTIONS.map((emoji) => {
+                {[...MESSAGE_REACTIONS, ...(premiumMe ? PREMIUM_REACTIONS : [])].map((emoji) => {
                   const active = (menuFor.reactions ?? {})[user.uid] === emoji;
                   return (
                     <button

@@ -1,7 +1,7 @@
 import { AddMoneyCard } from "./AddMoneyCard";
 import { UserBadges } from "./badges";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BadgeCheck, Bell, Check, Eye, Globe, GraduationCap, LayoutGrid, LogOut, Menu, MessageCircle, Moon, Play, Rows3, Settings, Share2, SquarePlay, Users, UserSquare, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bell, Check, Eye, Globe, GraduationCap, LayoutGrid, LogOut, Menu, MessageCircle, Moon, Play, Rows3, Settings, Share2, ShoppingBag, SquarePlay, Users, UserSquare, X } from "lucide-react";
 import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { Avatar } from "./Avatar";
@@ -10,6 +10,7 @@ import { useAuth } from "./AuthContext";
 import { fetchProfile } from "./chat";
 import { usePosts } from "./usePosts";
 import { formatViews } from "./views";
+import { productOrderLink } from "./shop";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { EditProfileModal } from "./EditProfileModal";
 import { EditProfilePage } from "./EditProfilePage";
@@ -80,7 +81,7 @@ export function ProfilePage({
       return "en";
     }
   });
-  const [tab, setTab] = useState<"grid" | "reels" | "tagged" | "list">("grid");
+  const [tab, setTab] = useState<"grid" | "reels" | "tagged" | "list" | "shop">("grid");
   const [openPostId, setOpenPostId] = useState<string | null>(null);
   const [people, setPeople] = useState<{ title: string; uids: string[] } | null>(
     null,
@@ -282,6 +283,7 @@ export function ProfilePage({
       p.authorId !== target.uid &&
       p.text.toLowerCase().includes(`@${target.username.toLowerCase()}`),
   );
+  const shopPosts = userPosts.filter((p) => !!p.product?.title);
   const gridPosts =
     tab === "reels" ? reelPosts : tab === "tagged" ? taggedPosts : userPosts;
 
@@ -789,6 +791,7 @@ export function ProfilePage({
           { key: "reels", label: "Reels", Icon: SquarePlay },
           { key: "tagged", label: "Tagged", Icon: UserSquare },
           { key: "list", label: "List view", Icon: Rows3 },
+          { key: "shop", label: "Shop", Icon: ShoppingBag },
         ] as const).map(({ key, label, Icon }) => (
           <button
             key={key}
@@ -806,7 +809,35 @@ export function ProfilePage({
       </div>
 
       <div>
-        {tab === "list" ? (
+        {tab === "shop" ? (
+          shopPosts.length === 0 ? (
+            <p className="text-center text-sm text-gray-400 py-10">শপে এখনো কোনো প্রোডাক্ট নেই।</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 p-2">
+              {shopPosts.map((p) => {
+                const pr = p.product!;
+                return (
+                  <div key={p.id} className="rounded-2xl border border-gray-100 overflow-hidden bg-white">
+                    <button type="button" onClick={() => setOpenPostId(p.id)} className="block w-full aspect-square bg-gray-100">
+                      {(pr.imageUrl || (p.mediaType !== "video" && p.mediaUrl)) ? (
+                        <img src={pr.imageUrl || p.mediaUrl} alt={pr.title} loading="lazy" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="w-full h-full flex items-center justify-center text-gray-300"><ShoppingBag size={32} /></span>
+                      )}
+                    </button>
+                    <div className="p-2">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{pr.title}</p>
+                      <p className="text-sm font-bold text-emerald-600">৳{pr.price}</p>
+                      <a href={productOrderLink(pr) || undefined} target="_blank" rel="noopener noreferrer" className="mt-1.5 h-8 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold flex items-center justify-center gap-1">
+                        <ShoppingBag size={13} /> Order Now
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : tab === "list" ? (
           userPosts.length === 0 ? (
             <p className="text-center text-sm text-gray-400 py-10">No posts yet.</p>
           ) : (
