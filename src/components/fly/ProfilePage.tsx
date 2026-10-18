@@ -1,7 +1,7 @@
 import { AddMoneyCard } from "./AddMoneyCard";
 import { UserBadges } from "./badges";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BadgeCheck, Bell, Check, Eye, Globe, GraduationCap, LayoutGrid, LogOut, Menu, MessageCircle, Moon, Play, Rows3, Settings, Share2, SquarePlay, Users, UserSquare, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Bell, Check, Eye, Globe, GraduationCap, LayoutGrid, LogOut, Menu, MessageCircle, Moon, Play, Rows3, Settings, Share2, ShoppingBag, SquarePlay, Users, UserSquare, X } from "lucide-react";
 import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { Avatar } from "./Avatar";
@@ -10,6 +10,7 @@ import { useAuth } from "./AuthContext";
 import { fetchProfile } from "./chat";
 import { usePosts } from "./usePosts";
 import { formatViews } from "./views";
+import { productOrderLink } from "./shop";
 import { NotificationSettingsModal } from "./NotificationSettingsModal";
 import { EditProfileModal } from "./EditProfileModal";
 import { EditProfilePage } from "./EditProfilePage";
